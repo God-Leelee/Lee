@@ -1,0 +1,18 @@
+[project]
+name = "za-material-forensics"
+version = "1.5.0"
+description = "Local image and video material forensics prototype"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "fastapi==0.115.12", "uvicorn==0.34.3", "python-multipart==0.0.20",
+  "pillow==11.3.0", "pillow-heif==0.22.0", "numpy==2.2.6", "opencv-python==4.11.0.86",
+  "av==16.1.0", "rapidocr-onnxruntime==1.4.4", "open-clip-torch==2.32.0",
+  "scikit-learn==1.7.0", "requests==2.32.4", "pyyaml==6.0.2", "yacs==0.1.8",
+]
+
+[project.optional-dependencies]
+test = ["httpx==0.28.1", "pytest==8.4.1"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
