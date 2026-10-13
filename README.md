@@ -23,7 +23,7 @@
 
 ## 评委快速开始
 
-建议下载 [v1.8 研究预览附件](https://github.com/God-Leelee/Lee/releases/tag/v1.8.0-preview.1)中的 **03 源码、05 视觉编码器、06 取证模型与源码**，解压到同一个父目录，得到一个 `Lee` 目录。不要形成 `Lee/Lee` 嵌套。
+先克隆或下载本仓库源码，再下载 [v1.8 模型附件](https://github.com/God-Leelee/Lee/releases/tag/v1.8.0-preview.1)中的 **Encoder Weights** 与 **Forensics Assets** 两个压缩包。将两个模型包解压到源码仓库的上一级目录，使压缩包中的 `Lee/` 与仓库目录合并；不要形成 `Lee/Lee` 嵌套。比赛PPT、Word和演示资料不在GitHub Release分发。
 
 准备 **Windows、Python 3.12、兼容 NVIDIA 驱动和 GPU、约25GB可用磁盘**。参考机器为 RTX5060 Laptop8GB、RAM32GB、Python3.12.14、torch2.8.0+cu128。第二台机器、其他GPU、CPU回退尚待完整实机验证。
 
