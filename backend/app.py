@@ -370,6 +370,9 @@ def benchmark(dataset: str='latest'):
     path=ROOT/'benchmark_results'/choices[dataset][0]/'summary.json' if dataset in choices else ROOT/'benchmark_results/latest_summary.json'
     if dataset=='suite' and (ROOT/'benchmark_results/public100-paired-performance-v1.1/summary.json').exists():
         path=ROOT/'benchmark_results/public100-paired-performance-v1.1/summary.json'
+    if not path.exists() and dataset in choices:
+        archived=ROOT/'docs/release'/choices[dataset][0]/'summary.json'
+        if archived.exists():path=archived
     result=json.loads(path.read_text(encoding='utf-8')) if path.exists() else {'status':'not_run','formal_acceptance':False}
     if dataset in {'documents18','portraits18'} and path.exists():
         result['status']='complete'
@@ -382,7 +385,7 @@ def benchmark(dataset: str='latest'):
                        'configuration_id':'wechat_generation_v1.2 / '+result['model_sha256'][:12],
                        'notes':'119张原始图片按近似材料分组，训练44、概率校准26、阈值选择29、保留测试20。标签仅说明AI来源；非AI不代表无传统篡改。此处不是完整风控产品验收。样本适配分支为辅助复核。'})
         result['metrics']['total']=result['metrics']['samples']
-    result['available_datasets']=[{'id':key,'name':value[1]} for key,value in choices.items() if key==dataset or (ROOT/'benchmark_results'/value[0]/'summary.json').exists()]
+    result['available_datasets']=[{'id':key,'name':value[1]} for key,value in choices.items() if key==dataset or (ROOT/'benchmark_results'/value[0]/'summary.json').exists() or (ROOT/'docs/release'/value[0]/'summary.json').exists()]
     result['selected_dataset']=dataset
     return result
 
