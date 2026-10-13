@@ -17,6 +17,7 @@ models/licenses/** -text
 # Exact frozen numerical configuration and inference source bytes.
 config.json -text
 models/runtime_assets.json -text
+requirements.lock -text
 backend/*.py -text
 scripts/evaluate_live_15.py -text
 scripts/evaluate_video_localization.py -text
