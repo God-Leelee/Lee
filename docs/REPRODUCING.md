@@ -2,7 +2,7 @@
 
 配置 `v1.8-research-preview-003`。固定权重清单为 `models/runtime_assets.json`，必要依赖为 `requirements.lock`。本轮从精简交付目录启动后重新取得98/100、0/70误报、最长2.302秒。此验证使用本机已有依赖，不冒称第二台机器全新安装。
 
-1. 克隆或下载GitHub仓库源码，再从同版本Release下载Encoder Weights和Forensics Assets两个模型包；解压到仓库上一级目录并合并为Lee。
+1. 下载03、05、06三个附件，解压到同一父目录形成Lee。
 2. 安装Python3.12及兼容NVIDIA驱动，预留25GB磁盘。
 3. 在Lee目录运行 `powershell -NoProfile -ExecutionPolicy Bypass -File .\安装与初始化.ps1`。
 4. 双击启动澄鉴.cmd，等待约3分钟模型加载和批量预热后访问本机地址。
@@ -24,7 +24,7 @@
 | Python3.14报依赖错误 | 使用py -3.12创建.venv |
 | CUDA不可用 | 核对NVIDIA驱动及torch2.8.0+cu128，不承诺CPU五秒 |
 | 权重缺失/哈希不符 | 解压两个权重附件并运行verify_assets.py，不跳过校验 |
-| 源码下载网页受限 | 使用GitHub仓库自动生成的Source code归档；测试原图另按原发布源获取 |
+| 源码下载网页受限 | 使用Release完整附件；测试原图另按原发布源获取 |
 | 新复现目录已存在 | 更换全新runs目录，保留旧记录 |
 | 长视频/大图/并发超过5秒 | 留存实际耗时，当前五秒结论仅覆盖已测串行范围 |
 
