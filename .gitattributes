@@ -21,3 +21,4 @@ requirements.lock -text
 backend/*.py -text
 scripts/evaluate_live_15.py -text
 scripts/evaluate_video_localization.py -text
+THIRD_PARTY_NOTICES.md -text
