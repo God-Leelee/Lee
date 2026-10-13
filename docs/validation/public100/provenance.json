@@ -1,0 +1,14 @@
+{
+  "registration_sha256": "07d8fdb1d06c4e96a824a03d78af7541ed727ad3f399d542f20e2c1ce13e4013",
+  "manifest_sha256": "bb503804f1571ba442145ee03c3bcc28cd79309506f1c7d6aa7438f34a576a4a",
+  "cases": 100,
+  "supplementary_matched_controls": 9,
+  "case_parents_disjoint": true,
+  "reserved_inference_used_to_select": false,
+  "formal_acceptance": false,
+  "business_truth_known": false,
+  "known_localization_GT_cases": 9,
+  "generative_inpainting_GT_cases": 0,
+  "video_caption_pairing_known": false,
+  "upstream_pretraining_overlap_known": false
+}

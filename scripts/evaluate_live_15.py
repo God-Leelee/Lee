@@ -20,11 +20,14 @@ from scripts.evaluate_video_localization import load_gt,score_localization
 
 
 def main():
-    parser=argparse.ArgumentParser();parser.add_argument('--suite',choices=['mixed','formats'],required=True);args=parser.parse_args()
-    data=ROOT/('data/complete_suite_v1.5' if args.suite=='mixed' else 'data/format_matrix_v1.4')
+    parser=argparse.ArgumentParser();parser.add_argument('--suite',choices=['mixed','formats'],required=True)
+    parser.add_argument('--version',default='1.5');parser.add_argument('--configuration-id',default='v1.5-compression-source-candidate-001')
+    parser.add_argument('--base',default='http://127.0.0.1:8765');parser.add_argument('--output')
+    args=parser.parse_args()
+    data=ROOT/(f'data/complete_suite_v{args.version}' if args.suite=='mixed' else 'data/format_matrix_v1.4')
     rows=json.loads((data/'manifest.json').read_text('utf-8'))
     controls=json.loads((data/'matched_controls.json').read_text('utf-8')) if args.suite=='mixed' else []
-    session=requests.Session();base='http://127.0.0.1:8765';deadline=time.perf_counter()+180
+    session=requests.Session();base=args.base;deadline=time.perf_counter()+180
     while True:
         try:
             health=session.get(base+'/api/health',timeout=5).json()
@@ -33,8 +36,8 @@ def main():
         if time.perf_counter()>deadline:raise TimeoutError('Local service not ready')
         time.sleep(.5)
     config=health['configuration']
-    if config['configuration_id']!='v1.5-compression-source-candidate-001' or health['model_errors']:raise ValueError('Unexpected frozen candidate or model error')
-    output=ROOT/'benchmark_results'/('public100-mixed-independent-v1.5-001' if args.suite=='mixed' else 'native-formats-v1.5-001');output.mkdir(exist_ok=True)
+    if config['configuration_id']!=args.configuration_id or health['model_errors']:raise ValueError('Unexpected frozen candidate or model error')
+    output=ROOT/'benchmark_results'/(args.output or (f'public100-mixed-independent-v{args.version}-001' if args.suite=='mixed' else f'native-formats-v{args.version}-001'));output.mkdir(exist_ok=True)
     implementation={p.relative_to(ROOT).as_posix():sha256(p) for p in list((ROOT/'backend').glob('*.py'))+[Path(__file__),ROOT/'scripts/evaluate_video_localization.py']}
     freeze(output/'frozen_manifest.json',rows);freeze(output/'frozen_controls.json',controls)
     freeze(output/'frozen_configuration.json',config);freeze(output/'frozen_implementation.json',implementation)

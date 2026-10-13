@@ -13,3 +13,9 @@ licenses/** -text
 models/licenses/** -text
 *.png binary
 *.mp4 binary
+
+# Exact frozen numerical configuration and inference source bytes.
+config.json -text
+backend/*.py -text
+scripts/evaluate_live_15.py -text
+scripts/evaluate_video_localization.py -text

@@ -85,6 +85,7 @@ def run(args):
             branches = {b['branch_id']: b for b in result['branches']}
             required = {'generation', 'forensic_generation', 'localization', 'copy_move', 'metadata', 'multimodal'}
             required |= {'temporal', 'video_origin'} if sample['material_type'] == 'video' else {'standalone_generation'}
+            required |= set(config[sample['material_type']+'_fusion']['required_features'])
             require(required <= branches.keys(), 'Required evidence branches missing')
             require(all(branches[k]['status'] != 'failed' for k in required), 'Evidence branch failed')
             evidence = output / f'sample-{index + 1}'

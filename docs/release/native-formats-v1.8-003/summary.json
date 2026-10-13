@@ -1,0 +1,25 @@
+{
+  "status": "completed",
+  "configuration_id": "v1.8-research-preview-003",
+  "formal_acceptance": false,
+  "dataset_name": "native-formats-v1.8-003",
+  "frozen_manifest_sha256": "b09a1fc8bddc41d9d13f061843eccd7dd2f188c006aed37d839f914ebe748c4c",
+  "configuration_sha256": "0ff10ef4a472e88bae722c582c9f1236162b5d389c1fe8f79f4639d73abd9f04",
+  "implementation_sha256": "ddd81d1594f24c96ea37de3a02af9aa5cd5ce26f87ccec19accbcdd3d354f30a",
+  "fresh_source_independent": false,
+  "notes": "22份开发父源的真实格式编码文件；用于接口、解码、原件、坐标、PTS、掩码与报告兼容验证，不是22个独立真伪样本。",
+  "latency_max_ms": 1771.9096999990143,
+  "latency_p95_ms": 1631.6603400010536,
+  "over_target": 0,
+  "failed": 0,
+  "fixtures": 22,
+  "complete_pipeline_and_evidence_verified": true,
+  "metrics": {
+    "total": 22,
+    "failed": 0,
+    "latency_max_ms": 1771.9096999990143,
+    "latency_p95_ms": 1631.6603400010536,
+    "over_target": 0
+  },
+  "no_accuracy_claim": true
+}

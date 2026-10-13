@@ -37,7 +37,7 @@ def evidence_features(branches):
     def details(name):
         b=by.get(name);return b.details if b is not None and b.status=='success' else {}
     result={}
-    for name in ('generation','forensic_generation','standalone_generation','video_origin','localization','copy_move','temporal'):
+    for name in ('generation','forensic_generation','standalone_generation','video_origin','video_generation_experts','localization','copy_move','temporal'):
         value=score(name);result[name+'.logit']=logit(value);result[name+'.missing']=float(value is None)
     loc=details('localization');copy=details('copy_move')
     for name in ('reliable_area_ratio','mean_reliability','largest_region_area_ratio','largest_region_compactness','inside_outside_probability_delta'):
@@ -46,6 +46,13 @@ def evidence_features(branches):
     result['localization.log_area']=math.log(max(1e-5,float(loc.get('reliable_area_ratio',0.))))
     result['copy_move.log_inliers']=math.log1p(max(0.,float(copy.get('inliers',0))))
     result['copy_move.inlier_ratio']=float(copy.get('inlier_ratio',0.))
+    result['copy_move.photometric_missing'] = float(not copy.get('photometric_available', False))
+    for key in ('photometric_agreement_ratio', 'photometric_normalized_error', 'photometric_correlation'):
+        result['copy_move.' + key] = float(copy.get(key, 0.))
+    dense = copy.get('dense_exact', {})
+    result['copy_move.dense_verified_log_pairs'] = math.log1p(max(0., float(dense.get('verified_pair_count', 0))))
+    result['copy_move.dense_verified_area_ratio'] = float(dense.get('verified_area_ratio', 0.))
+    result['copy_move.dense_largest_component_ratio'] = float(dense.get('largest_component_ratio', 0.))
     size=loc.get('original_size',[0,0]);pixels=float(size[0]*size[1]) if len(size)==2 else 0.
     result['copy_move.dense_area_ratio']=float(copy.get('dense_agreement_area',0.))/max(1.,pixels)
     temporal=details('temporal');windows=temporal.get('windows',[])
@@ -54,6 +61,11 @@ def evidence_features(branches):
     result['temporal.window_mean']=float(np.mean(risks)) if risks else 0.
     result['video_origin.temporal_agreement_logit']=min(result['video_origin.logit'],result['temporal.logit'])
     result['video_origin.localization_agreement_logit']=min(result['video_origin.logit'],result['localization.logit'])
+    frame_experts = details('video_generation_experts').get('frames', [])
+    frame_probabilities = [r['generation_probability'] for r in frame_experts if r.get('generation_probability') is not None]
+    result['video_generation_experts.frame_disagreement'] = float(np.ptp(frame_probabilities)) if frame_probabilities else 0.
+    result['video_generation_experts.temporal_agreement_logit'] = min(result['video_generation_experts.logit'], result['temporal.logit'])
+    result['video_generation_experts.localization_agreement_logit'] = min(result['video_generation_experts.logit'], result['localization.logit'])
     if not all(math.isfinite(v) for v in result.values()):raise ValueError('Non-finite ensemble evidence')
     return result
 

@@ -14,7 +14,8 @@ class FakeNetworks:
         self.waverep=object()
         self.device='cpu'
         self.info={'generation':{'preprocess':'test'},'temporal':{'trained':True},
-                   'video_origin':{'model':'synthetic workflow fixture','source_groups':{}}}
+                   'video_origin':{'model':'synthetic workflow fixture','source_groups':{}},
+                   'generation_experts':{'model':'synthetic workflow fixture'}}
         self.errors={}
         self.ocr=lambda raw:([],None)
 
@@ -25,6 +26,7 @@ class FakeNetworks:
     def wave_scores(self,images):return [-2.0]*len(images)
     def temporal_score(self,features,mask):return .1
     def video_origin_score(self,images,features):return .1,[-2.,-2.]
+    def video_expert_score(self,image):return .1,{'adapted_generation.logit':-2.}
     def localize_batch(self,images,max_side=320,batch_size=4):return [self.localize(image,max_side) for image in images]
 
     def localize(self,image,max_side=None):

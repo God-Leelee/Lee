@@ -1,6 +1,5 @@
 .venv/
 node_modules/
-frontend/dist/
 __pycache__/
 .pytest_cache/
 *.py[cod]
@@ -25,3 +24,6 @@ models/*.ckpt
 models/wechat*
 .DS_Store
 Thumbs.db
+
+models/generation_experts_v1.6/*.safetensors
+models/candidates/upstream_comparison_v1.8/

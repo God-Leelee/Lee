@@ -194,10 +194,12 @@ def health():
         'copy_move': True,
         'standalone_generation': getattr(MODEL, 'image_adapter', None) is not None,
         'video_origin': getattr(MODEL, 'video_adapter', None) is not None,
+        'generation_experts': getattr(MODEL, 'generation_experts', None) is not None,
+        'video_generation_experts': getattr(MODEL, 'generation_experts', None) is not None and CONFIG.get('video_generation_experts_enabled', False),
     }
     available = {branch: active and branch not in MODEL.errors for branch, active in available.items()}
     image_required = CONFIG.get('image_fusion', {}).get('required_features', ['generation', 'localization'])
-    if CONFIG.get('image_origin_adapter', {}).get('enabled') and CONFIG['image_origin_adapter'].get('decision_role') != 'review_only':
+    if not CONFIG.get('image_fusion') and CONFIG.get('image_origin_adapter', {}).get('enabled') and CONFIG['image_origin_adapter'].get('decision_role') != 'review_only':
         image_required = ['generation', 'forensic_generation', 'localization', 'standalone_generation']
     video_required = CONFIG.get('video_fusion', {}).get('required_features', ['generation', 'localization', 'temporal'])
     return {'status': 'ready' if MODEL.ready else 'loading', 'version': CONFIG['version'],
@@ -209,6 +211,7 @@ def health():
                              'temporal_trained': available['temporal'],
                              'domain_ai_trained': getattr(MODEL,'domain_head',None) is not None and 'domain_generation' not in MODEL.errors,
                              'public_image_origin_trained': available['standalone_generation'],
+                             'complementary_generation': available['generation_experts'],
                              'public_video_origin_trained': available['video_origin'],
                              'metadata': True, 'reports': True},
             'configuration': CONFIG, 'formal_acceptance': 'not_yet_verified'}
@@ -325,7 +328,18 @@ def report(case_id: str, format: str):
 
 @app.get('/api/benchmark')
 def benchmark(dataset: str='latest'):
-    choices={'suite15':('public100-mixed-independent-v1.5-001','1.5 新来源混合100套 · 独立实测'),
+    choices={'suite18':('public100-mixed-independent-v1.8-004','1.8 混合100套 · 冻结模型交付复测'),
+             'formats18':('native-formats-v1.8-003','1.8 主流格式 · 兼容回归'),
+             'documents18':('document-specialty-v1.8-003','1.8 文档局部AI编辑 · 专项实测'),
+             'portraits18':('portrait-generalization-v1.8-003','1.8 新人像来源 · 同一保留池'),
+             'suite17':('public100-mixed-independent-v1.7-002','1.7 新来源混合100套 · 独立实测'),
+             'generalization17':('image-generalization-v1.7-002','1.7 图片扩展测试 · 同一保留池'),
+             'unseen17':('unseen-source-v1.7-002','1.7 全新生成器与来源 · 留出压力测试'),
+             'formats17':('native-formats-v1.7-002','1.7 主流格式 · 兼容与重编码回归'),
+             'suite16':('public100-mixed-independent-v1.6-001','1.6 新来源混合100套 · 历史独立实测'),
+             'generalization16':('image-generalization-v1.6-001','1.6 图片扩展测试 · 同一保留池'),
+             'formats16':('native-formats-v1.6-001','1.6 主流格式 · 兼容与重编码回归'),
+             'suite15':('public100-mixed-independent-v1.5-001','1.5 新来源混合100套 · 历史独立实测'),
              'formats15':('native-formats-v1.5-001','1.5 主流格式 · 兼容与重编码回归'),
              'suite14verified':('public100-mixed-independent-v1.4-002-verified','1.4 混合100套 · 证据修复复核'),
              'suite14initial':('public100-mixed-independent-v1.4-002','1.4 首轮实测 · 校验失败记录'),
@@ -342,7 +356,10 @@ def benchmark(dataset: str='latest'):
     if dataset not in {'latest',*choices}:
         raise HTTPException(400,'未知评测集合。')
     if dataset=='latest':
-        if (ROOT/'benchmark_results/public100-mixed-independent-v1.5-001/summary.json').exists():dataset='suite15'
+        if CONFIG.get('version','').startswith('1.8'):dataset='suite18'
+        elif CONFIG.get('version','').startswith('1.7'):dataset='suite17'
+        elif CONFIG.get('version','').startswith('1.6'):dataset='suite16'
+        elif (ROOT/'benchmark_results/public100-mixed-independent-v1.5-001/summary.json').exists():dataset='suite15'
         elif (ROOT/'benchmark_results/public100-mixed-independent-v1.4-002-verified/summary.json').exists():dataset='suite14verified'
         elif (ROOT/'benchmark_results/public100-complete-suite-delivery-regression-v1.3/summary.json').exists():dataset='suite13final'
         elif (ROOT/'benchmark_results/public100-complete-suite-v1.3/summary.json').exists():dataset='suite13'
@@ -354,12 +371,18 @@ def benchmark(dataset: str='latest'):
     if dataset=='suite' and (ROOT/'benchmark_results/public100-paired-performance-v1.1/summary.json').exists():
         path=ROOT/'benchmark_results/public100-paired-performance-v1.1/summary.json'
     result=json.loads(path.read_text(encoding='utf-8')) if path.exists() else {'status':'not_run','formal_acceptance':False}
+    if dataset in {'documents18','portraits18'} and path.exists():
+        result['status']='complete'
+        result['metrics']['failed']=result['metrics'].get('failed_or_abstained',0)
+        result['metrics']['over_target']=result.get('over_target')
+        result['metrics']['latency_max_ms']=result.get('latency_max_ms')
+        result['notes']='来源分组的专项研究测试。与混合100套存在同池复用，不能合并作独立业务验收。文档专项尚未达标。' if dataset=='documents18' else '新父源人像研究测试，与混合100套共享保留池。来源真实不等于确认合法理赔。'
     if dataset=='wechat' and path.exists():
         result.update({'status':'complete','task_kind':'ai_origin','dataset_name':'微信资源包：分组后20张保留样本，仅评测AI／非AI来源标签',
                        'configuration_id':'wechat_generation_v1.2 / '+result['model_sha256'][:12],
                        'notes':'119张原始图片按近似材料分组，训练44、概率校准26、阈值选择29、保留测试20。标签仅说明AI来源；非AI不代表无传统篡改。此处不是完整风控产品验收。样本适配分支为辅助复核。'})
         result['metrics']['total']=result['metrics']['samples']
-    result['available_datasets']=[{'id':key,'name':value[1]} for key,value in choices.items() if (ROOT/'benchmark_results'/value[0]/'summary.json').exists()]
+    result['available_datasets']=[{'id':key,'name':value[1]} for key,value in choices.items() if key==dataset or (ROOT/'benchmark_results'/value[0]/'summary.json').exists()]
     result['selected_dataset']=dataset
     return result
 

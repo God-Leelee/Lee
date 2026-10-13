@@ -64,6 +64,7 @@ class Models:
         self.clip = self.head = self.trufor = self.ocr = self.temporal = self.waverep = self.domain_head = None
         self.image_adapter = None
         self.video_adapter = None
+        self.generation_experts = None
         self.errors, self.info = {}, {}
         self.ready = False
 
@@ -73,7 +74,8 @@ class Models:
                       'forensic_generation': ('waverep', 'wave_preprocess'),
                       'localization': ('trufor',), 'ocr': ('ocr',),
                       'temporal': ('temporal',), 'domain_generation': ('domain_head',),
-                      'standalone_generation': ('image_adapter',), 'video_origin': ('video_adapter',)}
+                      'standalone_generation': ('image_adapter',), 'video_origin': ('video_adapter',),
+                      'generation_experts': ('generation_experts',)}
         for attribute in attributes[branch]:
             setattr(self, attribute, None)
         self.info.pop(branch, None)
@@ -133,17 +135,20 @@ class Models:
         wave_path = ROOT / 'models/weights_dinov2_G4.ckpt'
         if wave_path.exists():
             try:
+                wave_checksum = sha256(wave_path)
+                if wave_checksum != '50d639049d928986ba7d69861a4fe4f3e7afbba1843e3e089cdf6b4748f53d5b':
+                    raise ValueError('WaveRep checkpoint differs from the verified upstream artifact')
                 import timm
                 # Full released checkpoint includes the backbone. There is no
                 # need to download a second generic DINO checkpoint.
                 self.waverep = timm.create_model('vit_base_patch14_reg4_dinov2.lvd142m', num_classes=1,
                                                 pretrained=False, img_size=504).to(self.device).eval()
-                wave = torch.load(wave_path, map_location='cpu', weights_only=False)
+                wave = torch.load(wave_path, map_location='cpu', weights_only=True)
                 state = {k[6:]:v for k,v in wave['state_dict'].items() if k.startswith('model.')} if 'state_dict' in wave else wave
                 self.waverep.load_state_dict(state, strict=True)
                 self.wave_preprocess = transforms.Compose([transforms.CenterCrop((504,504)),transforms.ToTensor(),
                     transforms.Normalize([.485,.456,.406],[.229,.224,.225])])
-                self.info['forensic_generation'] = {'model':'WaveRep DINOv2-B/14 G4', 'sha256':sha256(wave_path),
+                self.info['forensic_generation'] = {'model':'WaveRep DINOv2-B/14 G4', 'sha256':wave_checksum,
                     'source':'https://github.com/grip-unina/WaveRep-SyntheticVideoDetection',
                     'scope':'informational/nonprofit research only; retain original notices',
                     'preprocess':'official CenterCrop(504), ImageNet normalization',
@@ -168,6 +173,25 @@ class Models:
                     'development_manifest_sha256': adapter['development_manifest_sha256']}
             except Exception as exc:
                 self._disable_model('standalone_generation', exc)
+        expert_config = self.config.get('generation_experts', {})
+        if expert_config.get('enabled'):
+            try:
+                from .generation_experts import GenerationExperts, FEATURE_SPEC
+                from .representation_adapter import EXPERT_SPEC, NATIVE_EXPERT_SPEC
+                policy = self.config['image_fusion']
+                if policy.get('schema') != 'separate_risk_heads_v1' or expert_config.get('feature_spec') not in (FEATURE_SPEC, EXPERT_SPEC, NATIVE_EXPERT_SPEC):
+                    raise ValueError('Complementary experts require the matching frozen image policy')
+                self.generation_experts = GenerationExperts(expert_config, self.device)
+                self.info['generation_experts'] = {
+                    'model': ('Community Forensics 224 / native regional representation head' if expert_config['feature_spec'] == NATIVE_EXPERT_SPEC else 'Community Forensics 224 / trained two-view representation head') if expert_config.get('adaptation') else 'Community Forensics 224/384 + B-Free native five-crop',
+                    'precision': 'float32', 'feature_spec': expert_config['feature_spec'],
+                    'checkpoints': {name: expert_config[name] for name in ('commfor224', 'commfor384', 'bfree', 'adaptation') if name in expert_config},
+                    'source': ['https://github.com/JeongsooP/Community-Forensics'] + ([] if expert_config.get('adaptation') else ['https://github.com/grip-unina/B-Free']),
+                    'raw_score_limit': 'Individual sigmoid logits are uncalibrated detector outputs, not AI probabilities',
+                    'bfree_raw_patch_max_side': None if expert_config.get('adaptation') else 2048, 'calibration_scope': policy['scope'],
+                }
+            except Exception as exc:
+                self._disable_model('generation_experts', exc)
         video_config = self.config.get('video_origin_adapter', {})
         if video_config.get('enabled'):
             try:
@@ -196,10 +220,16 @@ class Models:
             cfg.MODEL.PRETRAINED = ''
             cfg.freeze()
             self.trufor = EncoderDecoder(cfg).to(self.device).eval()
-            checkpoint = torch.load(ROOT / 'models/trufor.pth.tar', map_location='cpu', weights_only=False)
+            trufor_path = ROOT / 'models/trufor.pth.tar'
+            trufor_checksum = sha256(trufor_path)
+            if trufor_checksum != 'ac1d90e329a72e0d66e8665e123a19e94bfae3209c3ef8a4f9ca3b91578c7844':
+                raise ValueError('TruFor checkpoint differs from the verified upstream artifact')
+            # This original research checkpoint contains non-tensor training
+            # metadata. Only the exact verified release may reach this loader.
+            checkpoint = torch.load(trufor_path, map_location='cpu', weights_only=False)
             self.trufor.load_state_dict(checkpoint['state_dict'], strict=True)
             self.info['localization'] = {'model': 'TruFor / Noiseprint++ + SegFormer-B2',
-                'sha256': sha256(ROOT / 'models/trufor.pth.tar'),
+                'sha256': trufor_checksum,
                 'source': 'https://github.com/grip-unina/TruFor',
                 'scope': 'nonprofit research only; original terms retained',
                 'preprocess': 'RGB float / 256.0 as upstream; resize is a recorded prototype adaptation'}
@@ -255,6 +285,8 @@ class Models:
              lambda: self.image_adapter_score(image, self.encode([image])[0][0])),
             ('video_origin', getattr(self, 'video_adapter', None) is not None,
              lambda: self.video_origin_score([image,image],self.encode([image,image])[0])),
+            ('generation_experts', getattr(self, 'generation_experts', None) is not None,
+             lambda: self.expert_score(image, .5)),
         ]
         warmup = {}
         for branch, available, function in jobs:
@@ -287,9 +319,52 @@ class Models:
                     break
         warmup['localization_shapes']={'shapes':warmed,'elapsed_ms':round((time.perf_counter()-shape_start)*1000,2),
                                        'source':'development input shapes only; no heldout inspection'}
+        # Batched coarse video inference creates different CUDA convolution
+        # plans from single-frame warmup. Prepare batch and tail sizes from
+        # the existing development shapes without reducing live coverage.
+        batch_start=time.perf_counter();batch_shapes=[]
+        if self.trufor is not None and 'localization' not in self.errors:
+            side=self.config.get('video_screening_max_side',192)
+            batch_size=self.config.get('video_screening_batch_size',1)
+            screens={tuple(max(64,round(v*min(1.,side/max(size)))) for v in size) for size in shapes}
+            for width,height in sorted(screens):
+                for count in sorted({1,2,3,batch_size}):
+                    if count>batch_size:continue
+                    try:
+                        self.localize_batch([Image.new('RGB',(width,height),(128,128,128))]*count,
+                            max_side=side,batch_size=batch_size)
+                        batch_shapes.append([width,height,count])
+                    except Exception as exc:
+                        self._disable_model('localization',exc);break
+                if 'localization' in self.errors:break
+        warmup['video_localization_batches']={'shapes':batch_shapes,
+            'elapsed_ms':round((time.perf_counter()-batch_start)*1000,2),
+            'source':'Batch/tail plans derived from existing development input shapes; no model or threshold change'}
 
     def autocast(self):
         return torch.autocast('cuda', dtype=torch.float16) if self.device == 'cuda' else nullcontext()
+
+    def expert_score(self, image, origin_probability):
+        if self.generation_experts is None or 'generation_experts' in self.errors:
+            raise RuntimeError(self.errors.get('generation_experts', 'Complementary generation experts unavailable'))
+        from .image_policy import generation_values, numeric_probability
+        raw = self.generation_experts.features(image)
+        probability = numeric_probability(self.config['image_fusion']['generation_head'],
+                                          generation_values(raw, origin_probability))
+        return probability, raw
+
+    def video_expert_score(self, image):
+        """Actual frame evidence; no stand-in image-origin probability."""
+        if self.generation_experts is None or 'generation_experts' in self.errors:
+            raise RuntimeError(self.errors.get('generation_experts', 'Generation experts unavailable'))
+        from .image_policy import numeric_probability
+        raw = self.generation_experts.features(image)
+        values = dict(raw)
+        values['commfor224.max_logit'] = max(raw['commfor224.center_logit'], raw['commfor224.global_logit'])
+        # A policy depending on any uncomputed branch fails explicitly here.
+        # Current1.8 generation head uses the actual adapted logit alone.
+        probability = numeric_probability(self.config['image_fusion']['generation_head'], values)
+        return probability, raw
 
     @torch.inference_mode()
     def encode(self, images):

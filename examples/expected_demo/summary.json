@@ -1,0 +1,11 @@
+{
+  "profile": "v1.8-research-preview-003",
+  "passed": true,
+  "samples": 3,
+  "failed": 0,
+  "over_5_seconds": 0,
+  "classification_accuracy_claimed": false,
+  "clean_machine_installation_verified": false,
+  "scope": "Procedural engineering inputs; no accuracy labels and no AI-generation truth",
+  "latency_scope": "HTTP upload to readable terminal case; evidence downloads separately recorded"
+}

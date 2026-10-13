@@ -1,19 +1,98 @@
 {
-  "schema": "cleartrace_runtime_assets_v1",
-  "profile": "v1.5-compression-source-candidate-001-github-review",
+  "schema": "cleartrace_runtime_assets_v2",
+  "profile": "v1.8-research-preview-003",
   "weights": [
-    {"path": "models/cache/models--timm--vit_large_patch14_clip_224.openai/snapshots/18d0535469bb561bf468d76c1d73aa35156c922b/open_clip_model.safetensors", "sha256": "9ce2e8a8ebfff3793d7d375ad6d3c35cb9aebf3de7ace0fc7308accab7cd207e", "source": "https://huggingface.co/timm/vit_large_patch14_clip_224.openai/tree/18d0535469bb561bf468d76c1d73aa35156c922b"},
-    {"path": "models/trufor.pth.tar", "sha256": "ac1d90e329a72e0d66e8665e123a19e94bfae3209c3ef8a4f9ca3b91578c7844", "source": "https://www.grip.unina.it/download/prog/TruFor/TruFor_weights.zip"},
-    {"path": "models/weights_dinov2_G4.ckpt", "sha256": "50d639049d928986ba7d69861a4fe4f3e7afbba1843e3e089cdf6b4748f53d5b", "source": "https://www.grip.unina.it/download/prog/WaveRep_SynthVideoDet/weights_dinov2_G4.ckpt"},
-    {"path": "models/ufd_fc.pth", "sha256": "477100745713bcc957beb2b40859536859b6483fd6301b3b9293151b194c7847", "source": "https://github.com/WisconsinAIVision/UniversalFakeDetect/blob/030495aea3300a8b54c0ec37ec7fe1dd7e63c619/pretrained_weights/fc_weights.pth"},
-    {"path": "models/candidates/public_image_adapter_v1.4.json", "sha256": "7a9fe5211c4099ea062e52dc6976578707961ec03e4c22cc6e3dbffb7d97ba77", "source": "local supervised adapter; upstream encoder and dataset terms retained"},
-    {"path": "models/candidates/video_origin_v1.5.json", "sha256": "bf121368d7748e509ec35cd808738e7cd790cca725342afed3a2c475846221d4", "source": "local supervised adapter; upstream encoder and dataset terms retained"},
-    {"path": "models/candidates/temporal_tcn_v1.4.pth", "sha256": "abf5f656a940525545df32c158d6557e5ced1d01cbefe8aa42d84a4d6684ccca", "source": "local supervised TCN; research evaluation only"}
+    {
+      "path": "models/cache/models--timm--vit_large_patch14_clip_224.openai/snapshots/18d0535469bb561bf468d76c1d73aa35156c922b/open_clip_model.safetensors",
+      "sha256": "9ce2e8a8ebfff3793d7d375ad6d3c35cb9aebf3de7ace0fc7308accab7cd207e",
+      "source": "https://huggingface.co/timm/vit_large_patch14_clip_224.openai/tree/18d0535469bb561bf468d76c1d73aa35156c922b",
+      "bytes": 1710517724
+    },
+    {
+      "path": "models/trufor.pth.tar",
+      "sha256": "ac1d90e329a72e0d66e8665e123a19e94bfae3209c3ef8a4f9ca3b91578c7844",
+      "source": "https://www.grip.unina.it/download/prog/TruFor/TruFor_weights.zip",
+      "bytes": 281496429
+    },
+    {
+      "path": "models/weights_dinov2_G4.ckpt",
+      "sha256": "50d639049d928986ba7d69861a4fe4f3e7afbba1843e3e089cdf6b4748f53d5b",
+      "source": "https://www.grip.unina.it/download/prog/WaveRep_SynthVideoDet/weights_dinov2_G4.ckpt",
+      "bytes": 346163178
+    },
+    {
+      "path": "models/ufd_fc.pth",
+      "sha256": "477100745713bcc957beb2b40859536859b6483fd6301b3b9293151b194c7847",
+      "source": "https://github.com/WisconsinAIVision/UniversalFakeDetect/blob/030495aea3300a8b54c0ec37ec7fe1dd7e63c619/pretrained_weights/fc_weights.pth",
+      "bytes": 4083
+    },
+    {
+      "path": "models/candidates/public_image_adapter_v1.4.json",
+      "sha256": "7a9fe5211c4099ea062e52dc6976578707961ec03e4c22cc6e3dbffb7d97ba77",
+      "source": "local supervised adapter; upstream encoder and dataset terms retained",
+      "bytes": 279332
+    },
+    {
+      "path": "models/candidates/video_origin_v1.5.json",
+      "sha256": "bf121368d7748e509ec35cd808738e7cd790cca725342afed3a2c475846221d4",
+      "source": "local supervised adapter; upstream encoder and dataset terms retained",
+      "bytes": 195225
+    },
+    {
+      "path": "models/candidates/temporal_tcn_v1.4.pth",
+      "sha256": "abf5f656a940525545df32c158d6557e5ced1d01cbefe8aa42d84a4d6684ccca",
+      "source": "local supervised TCN; research evaluation only",
+      "bytes": 487795
+    },
+    {
+      "path": "models/generation_experts_v1.6/commfor_224.safetensors",
+      "sha256": "a6cc439d5a6d2dfadd60c77d27a2838ad55b34e601ecd30f46ad97266d6ac4e0",
+      "source": "https://huggingface.co/OwensLab/commfor-model-224/tree/26afc31e6b40c312c3fd42c05a758be62446215b",
+      "bytes": 86678644
+    },
+    {
+      "path": "models/candidates/representation_adapter_v1.8-mlp.json",
+      "sha256": "d879b41eedc7d141b82a7749248ff051eedae842afd042b8efdcd12a2990afce",
+      "source": "Source-grouped supervised numeric adaptation; private raw samples excluded",
+      "bytes": 4578107
+    }
   ],
   "repositories": [
-    {"name": "UniversalFakeDetect", "commit": "030495aea3300a8b54c0ec37ec7fe1dd7e63c619"},
-    {"name": "TruFor", "commit": "ae54475df6f41a491d7615100feb19263dec13f7"},
-    {"name": "D3", "commit": "c798fbc57fe0c4198d63a73732c2c0f9e4b4816c"},
-    {"name": "WaveRep", "commit": "0fd6010759c14b572b7842a28fa9f85fe1ddd2fd"}
+    {
+      "name": "TruFor",
+      "commit": "ae54475df6f41a491d7615100feb19263dec13f7",
+      "source_files": {
+        "README.md": "5619f5bf00a88c64e0ff1101a0e2e66774c054ef97558b667f49f4b4ed920148",
+        "TruFor_train_test/LICENSE.txt": "07201e07e3d2c1ac55480037a87734fcccacbb0cd0e25a31e3b89ac7ffadf8b4",
+        "TruFor_train_test/LICENSE_CMX.txt": "687ff4d0ea13200541df7359799a08c2db626094ecacbb8a3fe63ffad177f2a1",
+        "TruFor_train_test/README.md": "107a03400be78a43d22aff6eeb902a28dd820717065e8fc2c8ec57422dba5a2c",
+        "TruFor_train_test/lib/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "TruFor_train_test/lib/config/__init__.py": "6bdeb641f3c7cb7bd776d4742aa3b5e2ce2e07382f7f5898e4a0dbbec0ae23c9",
+        "TruFor_train_test/lib/config/aug_res_comp.yaml": "014e2324c797e2dae70044da48de8b4f8e9e7c61797a991c85aeb8382ed50e57",
+        "TruFor_train_test/lib/config/default.py": "af4c43fc9b1cabc32b2b342da7c92d6d5c4bcf139e781e9313c38f5b14ced9aa",
+        "TruFor_train_test/lib/config/trufor_ph2.yaml": "7ff50612fb201507d667c7a9f0c467cc8ce6aee34f90d66cdea756f03e421ad7",
+        "TruFor_train_test/lib/config/trufor_ph3.yaml": "a87108eb0df40d9bab6a303eb91419564b7c106d5105bbd5d8ecaec1567b5b8b",
+        "TruFor_train_test/lib/core/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "TruFor_train_test/lib/core/criterion.py": "88ae91d1ab206d51855832856d6502681c1485413b198933daf1c43175f6a134",
+        "TruFor_train_test/lib/core/criterion_conf.py": "71dbe8538709a768cce1fdc14f624c166660f194e429d8af86eae31dcc6e6614",
+        "TruFor_train_test/lib/core/criterion_det.py": "fbeb52a14b2b198d9b486882daae44a70972bbdc7cde33fd95a739f123a20f62",
+        "TruFor_train_test/lib/core/function.py": "d1b53d99e0fd3d2c79bfaad8fa3520c822ec63617e629f53a2cb80b53c93bf2f",
+        "TruFor_train_test/lib/models/DnCNN.py": "3736b7c625d03b85accea77c26a41ea2da956dae07d70182532e7df9b74ae882",
+        "TruFor_train_test/lib/models/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "TruFor_train_test/lib/models/cmx/LICENSE_CMX.txt": "687ff4d0ea13200541df7359799a08c2db626094ecacbb8a3fe63ffad177f2a1",
+        "TruFor_train_test/lib/models/cmx/__init__.py": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+        "TruFor_train_test/lib/models/cmx/builder_np_conf.py": "6601194e490f587f606d7630ec0f48e1aeac214be7be26b9b4ace9e15ad7dd75",
+        "TruFor_train_test/lib/models/cmx/decoders/MLPDecoder.py": "9a368b341698f00c6a9fd46fd4a3cdeb388f7528836bdf013f9c686bef876052",
+        "TruFor_train_test/lib/models/cmx/encoders/dual_segformer.py": "546111a36c3090f408776c3b99d7cbfa0b938a0ac78abd9dd5014821b897d18e",
+        "TruFor_train_test/lib/models/cmx/init_func.py": "eb46a66c897d175939b4a5b35df06d10281256f1045e42ac5a39b3af539c6cec",
+        "TruFor_train_test/lib/models/cmx/layer_utils.py": "9ffaa0b142d886ba750df0f80beb8f9f467099e75f9009a72d0a449cd3238524",
+        "TruFor_train_test/lib/models/cmx/net_utils.py": "5ea7e40d892cfeac52f3651dbedb3f072fcf51b77e266cf790cac226af42c6e1",
+        "TruFor_train_test/lib/utils.py": "85199ad298381c2e85a7e73f0d528330ced2f3657cace1eaf1754b4c9a6d1e56",
+        "test_docker/LICENSE.txt": "07201e07e3d2c1ac55480037a87734fcccacbb0cd0e25a31e3b89ac7ffadf8b4",
+        "test_docker/LICENSE_CMX.txt": "687ff4d0ea13200541df7359799a08c2db626094ecacbb8a3fe63ffad177f2a1",
+        "test_docker/src/models/cmx/LICENSE_CMX.txt": "687ff4d0ea13200541df7359799a08c2db626094ecacbb8a3fe63ffad177f2a1"
+      },
+      "source": "https://github.com/grip-unina/TruFor"
+    }
   ]
 }

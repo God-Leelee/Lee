@@ -44,3 +44,17 @@ def test_spatial_summary_distinguishes_few_reliable_pixels_from_whole_image():
     assert stats2['reliable_area_ratio']==0 and stats2['region_count']==0
     values=evidence_features([Branch('localization','success',.8,details=stats)])
     assert values['copy_move.missing']==1 and np.isfinite(list(values.values())).all()
+
+
+def test_new_video_generation_evidence_enters_required_fusion_and_missing_fails():
+    config,branches=example()
+    spec=config.pop('image_fusion')
+    spec.update(features=['video_generation_experts.logit'],required_features=['generation','video_generation_experts'],
+        scaler_mean=[0.],scaler_scale=[1.],coefficients=[1.])
+    config['video_fusion']=spec
+    branches=[Branch('generation','success',.1),Branch('video_generation_experts','success',.99)]
+    result=fuse(branches,config,'video')
+    assert result['execution_complete'] and result['verdict']=='suspected_fake'
+    assert result['public_reference_probability'] is not None
+    missing=fuse(branches[:1]+[Branch('localization','success',.1)],config,'video')
+    assert not missing['execution_complete'] and missing['verdict']=='undetermined'

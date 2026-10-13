@@ -1,0 +1,49 @@
+{
+  "recorded_at_utc": "2026-10-02T15:56:06.435803+00:00",
+  "package": "rapidocr-onnxruntime",
+  "version": "1.4.4",
+  "official_release_page": "https://pypi.org/project/rapidocr-onnxruntime/1.4.4/",
+  "official_release_json": "https://pypi.org/pypi/rapidocr-onnxruntime/1.4.4/json",
+  "package_homepage": "https://github.com/RapidAI/RapidOCR",
+  "package_project_urls": [
+    "Documentation, https://rapidai.github.io/RapidOCRDocs",
+    "Changelog, https://github.com/RapidAI/RapidOCR/releases"
+  ],
+  "package_declared_license": "Apache-2.0",
+  "installed_metadata_sha256": "1ac15bed7c7fb77d3fac58c2aba0a4d3e2da48de5c65badd3503900acebcf1df",
+  "official_wheel": {
+    "file": "rapidocr_onnxruntime-1.4.4-py3-none-any.whl",
+    "source_url": "https://files.pythonhosted.org/packages/ba/12/1e5497183bdbe782dbb91bad1d0d2297dba4d2831b2652657f7517bfc6df/rapidocr_onnxruntime-1.4.4-py3-none-any.whl",
+    "bytes": 14915192,
+    "sha256": "971d7d5f223a7a808662229df1ef69893809d8457d834e6373d3854bc1782cbf",
+    "checked_against_official_release_digest": true,
+    "license_files": []
+  },
+  "models": [
+    {
+      "file": "rapidocr_onnxruntime/models/ch_PP-OCRv4_det_infer.onnx",
+      "bytes": 4745517,
+      "sha256": "d2a7720d45a54257208b1e13e36a8479894cb74155a5efe29462512d42f49da9",
+      "official_wheel_member_sha256": "d2a7720d45a54257208b1e13e36a8479894cb74155a5efe29462512d42f49da9",
+      "matches_official_wheel": true,
+      "license_scope": "Package declares Apache-2.0; no independently supplied per-model license in this wheel"
+    },
+    {
+      "file": "rapidocr_onnxruntime/models/ch_PP-OCRv4_rec_infer.onnx",
+      "bytes": 10857958,
+      "sha256": "48fc40f24f6d2a207a2b1091d3437eb3cc3eb6b676dc3ef9c37384005483683b",
+      "official_wheel_member_sha256": "48fc40f24f6d2a207a2b1091d3437eb3cc3eb6b676dc3ef9c37384005483683b",
+      "matches_official_wheel": true,
+      "license_scope": "Package declares Apache-2.0; no independently supplied per-model license in this wheel"
+    },
+    {
+      "file": "rapidocr_onnxruntime/models/ch_ppocr_mobile_v2.0_cls_infer.onnx",
+      "bytes": 585532,
+      "sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c",
+      "official_wheel_member_sha256": "e47acedf663230f8863ff1ab0e64dd2d82b838fceb5957146dab185a89d6215c",
+      "matches_official_wheel": true,
+      "license_scope": "Package declares Apache-2.0; no independently supplied per-model license in this wheel"
+    }
+  ],
+  "scope": "Recorded package declaration and exact packaged ONNX provenance only; no invented or inferred independent model-commercial-license clearance"
+}

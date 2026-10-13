@@ -1,53 +1,51 @@
-param([switch]$SkipDependencies)
+﻿param([switch]$SkipDependencies, [switch]$RebuildFrontend, [string]$Wheelhouse = '')
 $ErrorActionPreference = 'Stop'
 Set-Location -LiteralPath $PSScriptRoot
-foreach ($program in @('git','py','node','npm.cmd')) {
-    if (-not (Get-Command $program -ErrorAction SilentlyContinue)) { throw "Missing program: $program; see README." }
-}
+if (-not (Get-Command py -ErrorAction SilentlyContinue)) { throw 'Install Python 3.12 with the Windows py launcher first.' }
 if (-not (Test-Path -LiteralPath '.venv/Scripts/python.exe')) {
     py -3.12 -m venv .venv
-    if ($LASTEXITCODE -ne 0) { throw 'Please install Python 3.12 first.' }
+    if ($LASTEXITCODE -ne 0) { throw 'Python 3.12 virtual environment creation failed.' }
 }
 $reviewPython = Join-Path $PSScriptRoot '.venv/Scripts/python.exe'
 if (-not $SkipDependencies) {
-    & $reviewPython -m pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
-    if ($LASTEXITCODE -ne 0) { throw 'PyTorch installation failed.' }
-    & $reviewPython -m pip install -r requirements.lock
-    if ($LASTEXITCODE -ne 0) { throw 'Locked dependency installation failed.' }
-    & $reviewPython -m pip check
-    if ($LASTEXITCODE -ne 0) { throw 'Dependency validation failed.' }
-}
-& $reviewPython -c "import sys,torch; assert sys.version_info[:2]==(3,12), 'Requires Python 3.12'; assert torch.cuda.is_available(), 'This reviewed setup requires a working NVIDIA CUDA GPU'; print(torch.__version__,torch.cuda.get_device_name(0))"
-if ($LASTEXITCODE -ne 0) { throw 'Requires Python 3.12 and a working NVIDIA GPU. CPU runtime is not verified.' }
-New-Item -ItemType Directory -Force -Path third_party | Out-Null
-$repositories = @(
-    @{Name='UniversalFakeDetect'; Url='https://github.com/WisconsinAIVision/UniversalFakeDetect'; Commit='030495aea3300a8b54c0ec37ec7fe1dd7e63c619'},
-    @{Name='TruFor'; Url='https://github.com/grip-unina/TruFor'; Commit='ae54475df6f41a491d7615100feb19263dec13f7'},
-    @{Name='D3'; Url='https://github.com/Zig-HS/D3'; Commit='c798fbc57fe0c4198d63a73732c2c0f9e4b4816c'},
-    @{Name='WaveRep'; Url='https://github.com/grip-unina/WaveRep-SyntheticVideoDetection'; Commit='0fd6010759c14b572b7842a28fa9f85fe1ddd2fd'}
-)
-foreach ($repository in $repositories) {
-    $repositoryPath = Join-Path 'third_party' $repository.Name
-    if (-not (Test-Path -LiteralPath $repositoryPath)) {
-        git clone $repository.Url $repositoryPath
-        if ($LASTEXITCODE -ne 0) { throw "Upstream clone failed: $($repository.Name)" }
+    if ($Wheelhouse) {
+        & $reviewPython -m pip install --no-index --find-links $Wheelhouse -r requirements.lock
+    } else {
+        & $reviewPython -m pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
+        if ($LASTEXITCODE -ne 0) { throw 'CUDA PyTorch installation failed.' }
+        & $reviewPython -m pip install -r requirements.lock
     }
-    $changes = git -C $repositoryPath status --porcelain
-    if ($LASTEXITCODE -ne 0 -or $changes) { throw "Upstream directory is modified or not a Git repository: $repositoryPath" }
-    git -C $repositoryPath checkout --detach $repository.Commit
-    if ($LASTEXITCODE -ne 0) { throw "Pinned upstream commit unavailable: $($repository.Name)" }
+    if ($LASTEXITCODE -ne 0) { throw 'Dependency installation failed.' }
+    & $reviewPython -m pip check
+    if ($LASTEXITCODE -ne 0) { throw 'Pinned dependency conflict.' }
+}
+& $reviewPython -c "import sys,torch; assert sys.version_info[:2]==(3,12), 'Requires Python 3.12'; assert torch.cuda.is_available(), 'Requires NVIDIA CUDA GPU'; print(torch.__version__,torch.cuda.get_device_name(0))"
+if ($LASTEXITCODE -ne 0) { throw 'Python 3.12 and a compatible NVIDIA driver are required.' }
+$assetLock = Get-Content -LiteralPath 'models/runtime_assets.json' -Raw | ConvertFrom-Json
+foreach ($repo in $assetLock.repositories) {
+    $repoPath = Join-Path 'third_party' $repo.name
+    if (-not (Test-Path -LiteralPath $repoPath)) {
+        if (-not (Get-Command git -ErrorAction SilentlyContinue)) { throw 'Extract both model archives, or install Git to fetch upstream source.' }
+        git clone $repo.source $repoPath
+        if ($LASTEXITCODE -ne 0) { throw 'Pinned upstream source download failed.' }
+        git -C $repoPath checkout --detach $repo.commit
+        if ($LASTEXITCODE -ne 0) { throw 'Pinned upstream commit unavailable.' }
+    }
 }
 & $reviewPython -X utf8 scripts/fetch_models.py
-if ($LASTEXITCODE -ne 0) { throw 'Upstream download failed. Retry to reuse complete downloads.' }
+if ($LASTEXITCODE -ne 0) { throw 'Asset download/hash check failed. Existing valid assets are reusable.' }
 & $reviewPython -X utf8 scripts/verify_assets.py
-if ($LASTEXITCODE -ne 0) { throw 'Asset validation failed. Do not start the demo.' }
-Push-Location frontend
-try {
-    npm.cmd ci
-    if ($LASTEXITCODE -ne 0) { throw 'Frontend dependency installation failed.' }
-    npm.cmd run build
-    if ($LASTEXITCODE -ne 0) { throw 'Frontend build failed.' }
-} finally { Pop-Location }
+if ($LASTEXITCODE -ne 0) { throw 'Runtime asset lock verification failed.' }
+if ($RebuildFrontend -or -not (Test-Path -LiteralPath 'frontend/dist/index.html')) {
+    if (-not (Get-Command npm.cmd -ErrorAction SilentlyContinue)) { throw 'Install Node.js 20+ to rebuild the frontend.' }
+    Push-Location frontend
+    try {
+        npm.cmd ci
+        if ($LASTEXITCODE -ne 0) { throw 'Frontend dependency installation failed.' }
+        npm.cmd run build
+        if ($LASTEXITCODE -ne 0) { throw 'Frontend compilation failed.' }
+    } finally { Pop-Location }
+}
 & $reviewPython -X utf8 scripts/make_demo_samples.py
-if ($LASTEXITCODE -ne 0) { throw 'Procedural engineering input generation failed.' }
-Write-Host 'Setup complete. Use the CMD launcher in the project root and keep it running.'
+if ($LASTEXITCODE -ne 0) { throw 'Demo input generation failed.' }
+Write-Host 'CLEARTRACE 1.8 ready. Double-click the CMD launcher, wait for model startup, then open http://127.0.0.1:8765/'

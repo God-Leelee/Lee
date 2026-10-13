@@ -1,0 +1,25 @@
+{
+  "passed": true,
+  "slides": 20,
+  "word_pages": 13,
+  "native_office_rendered": true,
+  "all_final_pages_visually_inspected": true,
+  "ui_checks": {
+    "passed": true,
+    "errors": [],
+    "checks": [
+      "image_result",
+      "risk_layer",
+      "OCR",
+      "metadata",
+      "video",
+      "benchmark98",
+      "document_scope",
+      "sidebar",
+      "mobile_overflow"
+    ],
+    "private_medical_images_included": false
+  },
+  "second_machine_installation_verified": false,
+  "offline_python_dependency_installation_verified": false
+}

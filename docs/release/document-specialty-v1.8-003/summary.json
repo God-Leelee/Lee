@@ -1,0 +1,28 @@
+{
+  "configuration_id": "v1.8-research-preview-003",
+  "metrics": {
+    "total": 84,
+    "genuine": 28,
+    "fake": 56,
+    "tp": 22,
+    "fp": 11,
+    "tn": 17,
+    "fn": 34,
+    "failed_or_abstained": 0,
+    "accuracy": 0.4642857142857143,
+    "genuine_fpr": 0.39285714285714285,
+    "fake_recall": 0.39285714285714285,
+    "accuracy_wilson_95": [
+      0.36154050446577934,
+      0.5701547287722308
+    ],
+    "genuine_fpr_wilson_95": [
+      0.23565451827580033,
+      0.575912739650937
+    ]
+  },
+  "formal_acceptance": false,
+  "latency_max_ms": 4044.6236000007048,
+  "over_target": 0,
+  "scope": "Frozen source-held domain research check, foundation pretraining overlap unknown"
+}

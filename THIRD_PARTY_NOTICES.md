@@ -36,3 +36,12 @@ RapidOCR包声明与模型来源归档：`models/licenses/RapidOCR_1.4.4_DECLARA
 1.3公开图片来源头：训练在冻结CLIP-L/14与WaveRep编码器的中心／全图特征及弱纹理描述上进行，逻辑回归、Platt校准和分组开发流程由本原型实现，没有实施新的大模型蒸馏。原始图片来自[Defactify_Image_Dataset固定revision](https://huggingface.co/datasets/Rajarshi-Roy-research/Defactify_Image_Dataset/tree/787334f7857fa54f29027a7f09c30e895ad486ef)，研究说明见[原始论文](https://arxiv.org/abs/2601.00553)。原始parquet字节、caption组隔离、源文件SHA与受限分片抽样范围记录在本机provenance；训练600张、校准100张、完整阈值开发100张，保留测试100张。原始图片及特征缓存不随源码包提供。上游预训练交叉未知，自训头不改变编码器、WaveRep或数据条款。
 
 1.3视频扩充来源：[Gen-Video原始验证归档](https://modelscope.cn/datasets/cccnju/Gen-Video/resolve/master/GenVideo-Val.zip)。以目录身份、CRC、HTTP ETag、原始SHA和父源排除规则固定100条新视频；素材来源工具名为数据集标签，未取得逐条生成日志。重复性能回归和混合样例与专项测试的相关性完整保留，不声称300个独立业务案件。数据原件只在本机使用，保留原始出处与限制。
+
+
+## 1.8 更新的来源
+
+Community Forensics： https://github.com/JeongsooP/Community-Forensics ，代码 MIT。CF224 权重来自 https://huggingface.co/OwensLab/commfor-model-224 ，固定 revision `26afc31e6b40c312c3fd42c05a758be62446215b`，MIT 模型卡和 LICENSE 原文位于 licenses/。本项目在其冻结编码器上训练特征适配头，未把论文成绩当成本项目成绩。
+
+SPAI（https://github.com/mever-team/spai）和 CO-SPY（https://github.com/Megum1/CO-SPY）仅完成候选资料及资源准备，未进入本版推理，也未宣称完成同集效果对比。AIForge-Doc-v1/v2 仅用于授权的本地研究。其模型卡 CC BY-NC-SA 4.0 与 dataset_info 的 CC BY 4.0 存在冲突，采用较严格范围；原始文档与掩码均不在公开交付包。
+
+TruFor 源码包仅保留运行所需的 lib、配置与许可证，不包含重复的训练骨干权重、训练文件列表、论文配图和示例图片。每个保留文件仍按原始固定 commit 的 SHA-256 核验。

@@ -6,10 +6,13 @@ from .contracts import Branch
 from .evidence_fusion import SCHEMA as EVIDENCE_SCHEMA, fitted_probability
 
 
-VISUAL = {'generation', 'forensic_generation', 'localization', 'copy_move', 'temporal', 'standalone_generation', 'video_origin'}
+VISUAL = {'generation', 'forensic_generation', 'localization', 'copy_move', 'temporal', 'standalone_generation', 'video_origin', 'video_generation_experts'}
 
 
 def fuse(branches: list[Branch], config: dict, material_type: str) -> dict:
+    if material_type == 'image' and config.get('image_fusion', {}).get('schema') == 'separate_risk_heads_v1':
+        from .image_policy import fuse_separate
+        return fuse_separate(branches, config)
     review_origin = config.get('image_origin_adapter', {}).get('decision_role') == 'review_only'
     valid = [b for b in branches if b.branch_id in VISUAL and not (review_origin and b.branch_id == 'standalone_generation') and b.status == 'success' and
              b.score is not None and math.isfinite(b.score)]

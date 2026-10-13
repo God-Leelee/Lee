@@ -31,6 +31,9 @@ def verify():
     for path, value in configured:
         if expected.get(path) != value:
             errors.append('Configured checkpoint missing or different in lock: ' + path)
+    for item in config.get('generation_experts', {}).values():
+        if isinstance(item, dict) and 'checkpoint' in item and expected.get(item['checkpoint']) != item['sha256']:
+            errors.append('Generation checkpoint missing or different in lock: '+item['checkpoint'])
     for item in manifest['weights']:
         path = (ROOT / item['path']).resolve()
         if not path.is_relative_to(ROOT) or not path.is_file():
@@ -39,6 +42,12 @@ def verify():
             errors.append('SHA256 mismatch: ' + item['path'])
     for item in manifest['repositories']:
         path = ROOT / 'third_party' / item['name']
+        if item.get('source_files'):
+            for relative, expected_hash in item['source_files'].items():
+                source=(path/relative).resolve()
+                if not source.is_relative_to(path.resolve()) or not source.is_file() or digest(source)!=expected_hash:
+                    errors.append('Missing/modified pinned upstream file: '+item['name']+'/'+relative)
+            continue
         try:
             actual = subprocess.check_output(['git', '-C', str(path), 'rev-parse', 'HEAD'], text=True, stderr=subprocess.DEVNULL).strip()
             changes = subprocess.check_output(['git', '-C', str(path), 'status', '--porcelain', '--untracked-files=no'], text=True).strip()

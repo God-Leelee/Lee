@@ -96,6 +96,10 @@ def human_explanation(branches, fusion):
         elif b.branch_id == 'domain_generation' and b.status == 'success':
             lines.append({'branch_id':b.branch_id,'text':'已运行本地样本训练的AI来源适配模型；该分支目前用于辅助复核，独立测试效果见实测看板。',
                           'evidence_ids':[e['evidence_id'] for e in b.evidence]})
+        elif b.branch_id == 'generation_experts' and b.status == 'success':
+            lines.append({'branch_id': b.branch_id,
+                          'text': f'互补生成检测分支的参考集校准风险为{b.score:.1%}；各模型原始分数与校准结果分别记录，不能当作通用AI概率。',
+                          'evidence_ids': [e['evidence_id'] for e in b.evidence]})
         elif b.branch_id == 'standalone_generation' and b.status == 'success':
             lines.append({'branch_id': b.branch_id,
                           'text': f'多视图模型的公开图片来源校准概率为{b.score:.1%}；当前仅辅助复核，不改变主判定，亦不等于理赔欺诈概率。' if b.details.get('decision_role') == 'review_only' else f'多视图模型的公开图片来源校准概率为{b.score:.1%}；局部编辑和复制几何证据独立保留，此概率不等于理赔欺诈概率。',
@@ -110,6 +114,8 @@ def human_explanation(branches, fusion):
                           'evidence_ids': [e['evidence_id'] for e in b.evidence]})
     if fusion['verdict'] == 'lower_risk':
         lines.append({'branch_id': 'fusion', 'text': '当前证据未达到风险阈值；这不是真实性证明，仍需结合来源和案件资料。', 'evidence_ids': []})
+    if fusion.get('review_recommended'):
+        lines.append({'branch_id': 'fusion', 'text': '生成检测模型之间存在明显分歧，建议优先人工核对原始文件、生成记录和材料来源。', 'evidence_ids': []})
     return lines
 
 
@@ -124,7 +130,7 @@ class Engine:
         metadata_branch = Branch('metadata', 'success', score_kind='not_a_fake_score', model='Pillow original EXIF/XMP/info',
                                  evidence=metadata_signals(metadata), details=metadata,
                                  reason='未发现元数据来源标记；元数据缺失不表示伪造。' if not metadata_signals(metadata) else None)
-        copy_future = self.cpu.submit(guarded, 'copy_move', lambda: detect_copy_move(image, self.config['copy_max_side']))
+        copy_future = self.cpu.submit(guarded, 'copy_move', lambda: detect_copy_move(image, self.config['copy_max_side'], dense=self.config.get('dense_copy_parameters', True) if self.config.get('dense_copy_enabled', False) else False))
         branches = [metadata_branch]
         native_wave = None
         clip_global = None
@@ -162,6 +168,9 @@ class Engine:
         except Exception as exc:
             branches.append(Branch('generation', 'failed', reason=str(exc)))
             multimodal_future = None
+        if self.config.get('generation_experts', {}).get('enabled'):
+            origin = next((b.score for b in branches if b.branch_id == 'standalone_generation' and b.status == 'success'), None)
+            branches.append(guarded('generation_experts', lambda: self.expert_branch(image, origin)))
         branches.append(guarded('localization', lambda: save_localization(image, self.models, out, self.config)))
         if self.models.waverep is not None:
             branches.append(guarded('forensic_generation', lambda: self.wave_branch([image], native_wave)))
@@ -240,6 +249,24 @@ class Engine:
                         'frames':locations,'meaning':'来源疑点，不代表每帧或每个像素均被伪造。'}],
                     details={**self.models.info['video_origin'],'frames':locations,'decision_role':'ensemble_feature'})
             branches.append(guarded('video_origin',video_source_branch))
+        if self.config.get('video_generation_experts_enabled', False):
+            def frame_experts_branch():
+                began = time.perf_counter()
+                ids = sorted(set([len(frames)//4, 3*len(frames)//4]))
+                locations = []
+                for i in ids:
+                    probability, raw = self.models.video_expert_score(frames[i].image)
+                    locations.append({'frame_id': i, 'pts': frames[i].pts, 'time_base': frames[i].time_base,
+                        'timestamp_seconds': frames[i].timestamp, 'generation_probability': probability,
+                        'raw_features': raw})
+                return Branch('video_generation_experts', 'success', max(r['generation_probability'] for r in locations),
+                    score_kind='public_image_origin_reference_probability', model=self.models.info['generation_experts']['model'],
+                    elapsed_ms=(time.perf_counter()-began)*1000,
+                    evidence=[{'kind': 'video_frame_generation_experts', 'frames': locations,
+                        'text': '固定两个实际时间点补充生成来源证据；采样外区间未知，整帧来源判断不能替代篡改区域定位。'}],
+                    details={'frames': locations, 'aggregation': 'max_actual_frame_probability',
+                             'unsampled_intervals': 'unknown', 'decision_role': 'learned_video_fusion_feature'})
+            branches.append(guarded('video_generation_experts', frame_experts_branch))
         # Selection fallback is a position rule, never a synthetic risk score.
         selection_scores = np.asarray(scores).copy() if scores is not None else np.arange(len(frames), dtype=float)/len(frames)
         selection_rule = 'max(UFD, WaveRep) frame risk; fixed top-2 budget' if scores is not None else 'uniform-position fallback because encoder failed'
@@ -388,6 +415,25 @@ class Engine:
         preview_future.result()
         return branches, {'width': frames[0].image.width, 'height': frames[0].image.height, 'preview': frame_rows[main]['preview'],
                           'metadata': metadata, 'frames': frame_rows, 'windows': windows, 'decode_ms': decode_ms}
+
+    def expert_branch(self, image, origin_probability):
+        (probability, raw), elapsed = measured(lambda: self.models.expert_score(image, origin_probability))
+        evidence = [{'kind': 'complementary_generation',
+                     'text': '已运行中心与全图视图的生成检测，并按冻结配置应用训练的来源分类头；先独立校准生成风险，再与篡改风险合并。',
+                     'probability_scope': self.config['image_fusion']['scope']}]
+        from .image_policy import sigmoid
+        policy = self.config['image_fusion']
+        if sigmoid(probability * policy['union_platt_coefficient'] + policy['union_platt_intercept']) >= policy['threshold']:
+            evidence.append({'kind': 'full_frame_source_suspicion', 'bbox': [0, 0, image.width, image.height],
+                             'coordinate_space': 'original_raw_pixels', 'probability': probability,
+                             'text': '互补来源检测提示整图生成风险；全图范围是来源线索，不能视作每个像素均被伪造的真值掩码。'})
+        return Branch('generation_experts', 'success', probability,
+                      score_kind='public_reference_generation_probability',
+                      model=self.models.info['generation_experts']['model'], elapsed_ms=elapsed,
+                      evidence=evidence, details={'raw_features': raw, 'precision': 'float32',
+                      'raw_score_limit': '原始logit及其sigmoid仅为模型分数，不能作为AI概率或理赔欺诈概率。',
+                      'views': 'center + padded full image' + ('; five unresized regional crops; trained CLS/patch representation adaptation' if self.config['generation_experts'].get('feature_spec') == 'cf224_native_representation_adapter_float32_v2' else '; trained CLS/patch representation adaptation' if self.config['generation_experts'].get('adaptation') else '; B-Free native embedding five-crop'),
+                      'full_generation_localization_limit': '生成来源判断针对整图，不代表每个像素都是伪造像素。'})
 
     def wave_branch(self, images, shared_native_logit=None):
         began=time.perf_counter()

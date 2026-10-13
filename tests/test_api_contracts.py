@@ -142,6 +142,17 @@ def test_health_and_loading_rejection_do_not_load_real_models(api):
     assert list(api.app.DATA.iterdir()) == []
 
 
+def test_health_respects_new_required_experts_even_with_legacy_adapter_enabled(api):
+    api.app.CONFIG['image_fusion']['required_features'].append('generation_experts')
+    api.app.CONFIG['image_origin_adapter'] = {'enabled': True, 'decision_role': 'ensemble_feature'}
+    api.app.MODEL.image_adapter = object()
+    assert not api.client.get('/api/health').json()['capabilities']['image']
+    api.app.MODEL.generation_experts = object()
+    assert api.client.get('/api/health').json()['capabilities']['image']
+    api.app.MODEL.errors['generation_experts'] = 'weight or calibration mismatch'
+    assert not api.client.get('/api/health').json()['capabilities']['image']
+
+
 def test_case_list_uses_small_index_and_never_copies_full_evidence(api, monkeypatch):
     case_id = upload(api).json()['case_id']
     api.worker.drain()

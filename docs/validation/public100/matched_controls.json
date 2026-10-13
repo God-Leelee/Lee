@@ -1,0 +1,263 @@
+[
+  {
+    "sample_id": "suite18_edit_image_01_control",
+    "material_type": "image",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_image_01_control.png",
+    "sha256": "2841e275733bc22aeee5ae70e2a1f7ecc7b141a2806c3b2e13e16df7a32a5e04",
+    "generator_tool": "not_applicable",
+    "source_groups": [
+      "RAISE:r079d086et"
+    ],
+    "mask_path": "empty_truth.png"
+  },
+  {
+    "sample_id": "suite18_edit_image_02_control",
+    "material_type": "image",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_image_02_control.png",
+    "sha256": "0aa809f18cc9eb6393f558915a27da97983c549596415c13b009455287f14397",
+    "generator_tool": "not_applicable",
+    "source_groups": [
+      "RAISE:r089cae91t"
+    ],
+    "mask_path": "empty_truth.png"
+  },
+  {
+    "sample_id": "suite18_edit_image_03_control",
+    "material_type": "image",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_image_03_control.png",
+    "sha256": "f3f67e53be8a3ace781fd2dcf63a21d41c63a6c6ddf93443389ae2652bb2fff8",
+    "generator_tool": "not_applicable",
+    "source_groups": [
+      "RAISE:r1d53fccat"
+    ],
+    "mask_path": "empty_truth.png"
+  },
+  {
+    "sample_id": "suite18_edit_image_04_control",
+    "material_type": "image",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_image_04_control.png",
+    "sha256": "6ed560439ad3a2b591da61a060c8f4952e18625f1967ef96fa8cd252a140bfba",
+    "generator_tool": "not_applicable",
+    "source_groups": [
+      "RAISE:r107730b5t",
+      "RAISE:r17217693t"
+    ],
+    "mask_path": "empty_truth.png"
+  },
+  {
+    "sample_id": "suite18_edit_image_05_control",
+    "material_type": "image",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_image_05_control.png",
+    "sha256": "67a1f03a9b11a6f66fa41384b26b2bd91b1d95586aeb1f1046635efe82fd16e6",
+    "generator_tool": "not_applicable",
+    "source_groups": [
+      "RAISE:r1e367d35t",
+      "RAISE:r0150031ft"
+    ],
+    "mask_path": "empty_truth.png"
+  },
+  {
+    "sample_id": "suite18_edit_image_06_control",
+    "material_type": "image",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_image_06_control.png",
+    "sha256": "35ba60856378ccdccaf6328922205611a2aa8bba526e10769fd54aadf58382d6",
+    "generator_tool": "not_applicable",
+    "source_groups": [
+      "RAISE:r1a0968bft",
+      "RAISE:r1a499b96t"
+    ],
+    "mask_path": "empty_truth.png"
+  },
+  {
+    "sample_id": "suite18_edit_video_01_control",
+    "relative_path": "suite18_edit_video_01_control.mp4",
+    "sha256": "df01e03102b3c25125aef6ca65e52fcd66fbb2fffc8103380c1542944762ddad",
+    "bytes": 257102,
+    "material_type": "video",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "split": "engineering",
+    "source_group": "0d54b73148dc1b582c4957c402bdef5f7b9aa303370b7098d53f1b4ed1193e32",
+    "generator_tool": "not_applicable",
+    "parent_sha256": [
+      "0d54b73148dc1b582c4957c402bdef5f7b9aa303370b7098d53f1b4ed1193e32"
+    ],
+    "parents": [
+      {
+        "sample_id": "genvideo_new_a88c7c38f495a6a72768be87",
+        "split": "public_holdout",
+        "truth_label": "genuine",
+        "sha256": "0d54b73148dc1b582c4957c402bdef5f7b9aa303370b7098d53f1b4ed1193e32",
+        "source_group": "GenVideo-Val/Real/msrvtt_7514.mp4",
+        "timing_path": "parents/genvideo_new_a88c7c38f495a6a72768be87_timing.json"
+      }
+    ],
+    "width": 640,
+    "height": 480,
+    "fps": 24,
+    "frame_count": 96,
+    "duration_seconds": 4.0,
+    "frame_ground_truth_path": "suite18_edit_video_01_control_frames.json",
+    "frame_ground_truth_sha256": "d1abb910783fc56961372fdeb1941070ff823efe95592c7540b976250bd28caa",
+    "mask_path": "suite18_edit_video_01_control_truth.png",
+    "mask_sha256": "d84d6f2dd66fc03d4c003ec2f918872d0b0f6f408227911e4eda79da6920f64c",
+    "empty_mask_path": "empty_truth.png",
+    "empty_mask_sha256": "d84d6f2dd66fc03d4c003ec2f918872d0b0f6f408227911e4eda79da6920f64c",
+    "operation_ground_truth": {
+      "requested_interval_seconds": null,
+      "actual_frame_exposure_interval_seconds": null,
+      "interval_convention": "start inclusive, end exclusive; quantized output-frame exposure",
+      "edited_frame_indices": [],
+      "patch_box_xywh": null,
+      "donor_crop_xywh": null
+    },
+    "host_looped": false,
+    "donor_looped": false,
+    "any_parent_looped": false,
+    "host_unique_source_frames_used": 12,
+    "loop_and_resampling_limit": "Repeated/resampled decoded frames and loop seams are engineered motion, not genuine continuous source motion.",
+    "is_unmodified_original_capture": false,
+    "audio_policy": "No audio exported; audio is outside this fixture scope.",
+    "ai_operation_limit": null,
+    "source_url": "public_genvideo_v1/manifest.json",
+    "scope": "Train-parent known-operation engineering fixtures; not independent contest or business acceptance.",
+    "formal_acceptance": false,
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_video_01_control.mp4",
+    "source_groups": [
+      "GenVideo-Val/Real/msrvtt_7514.mp4",
+      "GenVideo-Val/Real/msrvtt_6523.mp4"
+    ]
+  },
+  {
+    "sample_id": "suite18_edit_video_02_control",
+    "relative_path": "suite18_edit_video_02_control.mp4",
+    "sha256": "a428c89a7998c6480d5435775eb09d7b387b2397ab61b34fd486e0b55ff6371f",
+    "bytes": 191540,
+    "material_type": "video",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "split": "engineering",
+    "source_group": "5c27a703f9591847732274dbf44d24a9edc8e1ebbde89109e36fadc4a049a415",
+    "generator_tool": "not_applicable",
+    "parent_sha256": [
+      "5c27a703f9591847732274dbf44d24a9edc8e1ebbde89109e36fadc4a049a415"
+    ],
+    "parents": [
+      {
+        "sample_id": "genvideo_new_c92a6149f6ac15942f919820",
+        "split": "public_holdout",
+        "truth_label": "genuine",
+        "sha256": "5c27a703f9591847732274dbf44d24a9edc8e1ebbde89109e36fadc4a049a415",
+        "source_group": "GenVideo-Val/Real/msrvtt_8672.mp4",
+        "timing_path": "parents/genvideo_new_c92a6149f6ac15942f919820_timing.json"
+      }
+    ],
+    "width": 640,
+    "height": 480,
+    "fps": 24,
+    "frame_count": 96,
+    "duration_seconds": 4.0,
+    "frame_ground_truth_path": "suite18_edit_video_02_control_frames.json",
+    "frame_ground_truth_sha256": "13deddc97b029d9573e717f988f9ee8bd670ced9cfe3affc1e901fb4260768f8",
+    "mask_path": "suite18_edit_video_02_control_truth.png",
+    "mask_sha256": "d84d6f2dd66fc03d4c003ec2f918872d0b0f6f408227911e4eda79da6920f64c",
+    "empty_mask_path": "empty_truth.png",
+    "empty_mask_sha256": "d84d6f2dd66fc03d4c003ec2f918872d0b0f6f408227911e4eda79da6920f64c",
+    "operation_ground_truth": {
+      "requested_interval_seconds": null,
+      "actual_frame_exposure_interval_seconds": null,
+      "interval_convention": "start inclusive, end exclusive; quantized output-frame exposure",
+      "edited_frame_indices": [],
+      "patch_box_xywh": null,
+      "donor_crop_xywh": null
+    },
+    "host_looped": false,
+    "donor_looped": false,
+    "any_parent_looped": false,
+    "host_unique_source_frames_used": 12,
+    "loop_and_resampling_limit": "Repeated/resampled decoded frames and loop seams are engineered motion, not genuine continuous source motion.",
+    "is_unmodified_original_capture": false,
+    "audio_policy": "No audio exported; audio is outside this fixture scope.",
+    "ai_operation_limit": null,
+    "source_url": "public_genvideo_v1/manifest.json",
+    "scope": "Train-parent known-operation engineering fixtures; not independent contest or business acceptance.",
+    "formal_acceptance": false,
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_video_02_control.mp4",
+    "source_groups": [
+      "GenVideo-Val/Real/msrvtt_8672.mp4",
+      "GenVideo-Val/Real/msrvtt_1020.mp4"
+    ]
+  },
+  {
+    "sample_id": "suite18_edit_video_03_control",
+    "relative_path": "suite18_edit_video_03_control.mp4",
+    "sha256": "813cba03d23714888131a681729ffcfd2a70d0effce780efbe44fac611bce552",
+    "bytes": 269558,
+    "material_type": "video",
+    "truth_label": "genuine",
+    "material_class": "matched_reencoded_control",
+    "split": "engineering",
+    "source_group": "ecfa80543412dddc172bfb1af58475dd12c5b3b3ce604b1cdd24253c398e0310",
+    "generator_tool": "not_applicable",
+    "parent_sha256": [
+      "ecfa80543412dddc172bfb1af58475dd12c5b3b3ce604b1cdd24253c398e0310"
+    ],
+    "parents": [
+      {
+        "sample_id": "genvideo_new_67895fabe6bc240174ffb63a",
+        "split": "public_holdout",
+        "truth_label": "genuine",
+        "sha256": "ecfa80543412dddc172bfb1af58475dd12c5b3b3ce604b1cdd24253c398e0310",
+        "source_group": "GenVideo-Val/Real/msrvtt_8220.mp4",
+        "timing_path": "parents/genvideo_new_67895fabe6bc240174ffb63a_timing.json"
+      }
+    ],
+    "width": 640,
+    "height": 480,
+    "fps": 24,
+    "frame_count": 96,
+    "duration_seconds": 4.0,
+    "frame_ground_truth_path": "suite18_edit_video_03_control_frames.json",
+    "frame_ground_truth_sha256": "4319f4e95249d4cca8227b7cc43d54e0855a5c8dff0f07676d61183e97a4c2f3",
+    "mask_path": "suite18_edit_video_03_control_truth.png",
+    "mask_sha256": "d84d6f2dd66fc03d4c003ec2f918872d0b0f6f408227911e4eda79da6920f64c",
+    "empty_mask_path": "empty_truth.png",
+    "empty_mask_sha256": "d84d6f2dd66fc03d4c003ec2f918872d0b0f6f408227911e4eda79da6920f64c",
+    "operation_ground_truth": {
+      "requested_interval_seconds": null,
+      "actual_frame_exposure_interval_seconds": null,
+      "interval_convention": "start inclusive, end exclusive; quantized output-frame exposure",
+      "edited_frame_indices": [],
+      "patch_box_xywh": null,
+      "donor_crop_xywh": null
+    },
+    "host_looped": false,
+    "donor_looped": false,
+    "any_parent_looped": false,
+    "host_unique_source_frames_used": 12,
+    "loop_and_resampling_limit": "Repeated/resampled decoded frames and loop seams are engineered motion, not genuine continuous source motion.",
+    "is_unmodified_original_capture": false,
+    "audio_policy": "No audio exported; audio is outside this fixture scope.",
+    "ai_operation_limit": null,
+    "source_url": "public_genvideo_v1/manifest.json",
+    "scope": "Train-parent known-operation engineering fixtures; not independent contest or business acceptance.",
+    "formal_acceptance": false,
+    "workspace_relative_path": "data/complete_suite_v1.8/fixtures/suite18_edit_video_03_control.mp4",
+    "source_groups": [
+      "GenVideo-Val/Real/msrvtt_8220.mp4",
+      "GenVideo-Val/Real/msrvtt_4885.mp4"
+    ]
+  }
+]

@@ -8,7 +8,7 @@ from PIL import Image
 from .contracts import Branch
 
 
-def detect_copy_move(image: Image.Image, max_side=1024) -> Branch:
+def detect_copy_move(image: Image.Image, max_side=1024, dense=False) -> Branch:
     start = time.perf_counter()
     width, height = image.size
     scale = min(1, max_side / max(width, height))
@@ -17,6 +17,7 @@ def detect_copy_move(image: Image.Image, max_side=1024) -> Branch:
     keys, descriptors = detector.detectAndCompute(gray, None)
     branch = Branch('copy_move', 'success', 0.0, model='SIFT + spatial exclusion + affine RANSAC',
                     details={'keypoints': len(keys), 'candidate_pairs': 0, 'inliers': 0,
+                             'photometric_available': False,
                              'coordinate_space': 'original_raw_pixels', 'copy_direction': 'unknown',
                              'working_scale': scale,
                              'score_definition': 'uncalibrated geometric support, not a posterior'})
@@ -65,8 +66,27 @@ def detect_copy_move(image: Image.Image, max_side=1024) -> Branch:
                         # transform; never infer copy direction from this step.
                         rgb = np.asarray(image.resize((gray.shape[1], gray.shape[0])))
                         warped = cv2.warpAffine(rgb, matrix, (gray.shape[1], gray.shape[0]), flags=cv2.INTER_LINEAR)
+                        valid = cv2.warpAffine(np.ones(gray.shape, np.uint8), matrix,
+                                               (gray.shape[1], gray.shape[0]), flags=cv2.INTER_NEAREST) > 0
                         difference = np.max(np.abs(rgb.astype(np.int16)-warped.astype(np.int16)), axis=2)
-                        agreement = (difference <= 8).astype(np.uint8)
+                        # Pixel agreement around the geometric inliers distinguishes
+                        # an actual copied patch from naturally repeated windows,
+                        # text or lookalike objects. It remains learned evidence.
+                        neighbourhood = np.zeros(gray.shape, np.uint8)
+                        for point in target[keep]:
+                            px, py = np.rint(point).astype(int)
+                            cv2.circle(neighbourhood, (int(px), int(py)), 5, 1, -1)
+                        supported = (neighbourhood > 0) & valid
+                        if supported.any():
+                            a = cv2.cvtColor(rgb, cv2.COLOR_RGB2GRAY)[supported].astype(float)
+                            b = cv2.cvtColor(warped, cv2.COLOR_RGB2GRAY)[supported].astype(float)
+                            a -= a.mean(); b -= b.mean()
+                            denominator = float(np.linalg.norm(a) * np.linalg.norm(b))
+                            branch.details.update(photometric_available=True,
+                                photometric_agreement_ratio=float((difference[supported] <= 16).mean()),
+                                photometric_normalized_error=float(difference[supported].mean() / 255),
+                                photometric_correlation=float(np.dot(a, b) / denominator) if denominator > 1e-9 else 0.)
+                        agreement = ((difference <= 8) & valid).astype(np.uint8)
                         _, labels, component_stats, _ = cv2.connectedComponentsWithStats(agreement, 8)
                         votes = {}
                         for point in target[keep]:
@@ -90,6 +110,21 @@ def detect_copy_move(image: Image.Image, max_side=1024) -> Branch:
                         branch.evidence.append({'kind': 'copy_pair', 'region_a': bbox_a, 'region_b': bbox_b,
                             'matches': [[*map(float, a), *map(float, b)] for a, b in list(zip(points_a, points_b))[:24]],
                             'direction': 'unknown', 'text': f'{count}组远距离特征通过同一仿射变换验证；相似纹理仍需人工复核。'})
+    if dense:
+        from .dense_copy import dense_copy
+        parameters = dense if isinstance(dense, dict) else {}
+        verified = dense_copy(image, max_side=max_side, **parameters)
+        branch.details['dense_exact'] = verified
+        branch.model += ' + dense pixel-verified translation candidates'
+        if verified['verified_pair_count'] >= 4 and len(verified.get('regions', [])) == 2:
+            # Sparse SIFT can be unavailable on small/flat copied patches.
+            # Dense support remains a separate learned feature, not a verdict.
+            if branch.status == 'insufficient_evidence':
+                branch.status, branch.score = 'success', 0.
+                branch.reason = '稀疏纹理点不足，另有逐像素验证的重复区域候选。'
+            branch.evidence.append({'kind': 'copy_pair', 'region_a': verified['regions'][0],
+                'region_b': verified['regions'][1], 'direction': 'unknown', 'dense_exact': True,
+                'text': '两处区域存在逐像素一致的远距离重复块；重复文字或图案也可能出现此现象，不能单独证明欺诈。'})
     branch.elapsed_ms = round((time.perf_counter() - start) * 1000, 2)
     return branch
 
