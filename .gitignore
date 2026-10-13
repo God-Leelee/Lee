@@ -19,6 +19,7 @@ benchmark_results/
 models/cache/
 models/.local-cache-link/
 models/*.pth
+!models/ufd_fc.pth
 models/*.tar
 models/*.ckpt
 models/wechat*
