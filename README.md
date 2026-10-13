@@ -1,79 +1,127 @@
 # 澄鉴 CLEARTRACE
 
-图片与视频材料反欺诈原型 **1.8.0 研究预览版**  
-同济大学 李洪宇 · 众安 1024 AI Coding 大赛
+本地运行的图片与视频材料取证工作台。它把生成痕迹、局部编辑、复制粘贴、元数据、OCR 与视频时序线索汇总为可追查的案件记录，供人工复核使用。
 
-可在 Windows + NVIDIA GPU 本机运行的取证工作台，覆盖 AI 图片、AI 视频、传统篡改和统一报告。界面采用简洁布局与浅色半透明玻璃材质，材料保留在本机。
+![澄鉴工作台](docs/images/workbench.png)
 
-![本地实际工作台，仅含自制工程样例](docs/images/workbench.png)
+## 功能
 
-**当前公开混合研究测试达到数值门槛，文档局部 AI 修改尚未达标。** 请结合下方范围阅读成绩。当前版本不代表全部真实理赔材料已通过正式验收。
+- 图片来源分析：对公开支持的生成模型痕迹进行多分支检测。
+- 局部篡改分析：输出可疑区域、热力图和原图坐标。
+- 视频分析：抽取关键帧、保留实际时间戳并分析时序一致性。
+- 辅助证据：读取元数据、执行 OCR、检查复制粘贴与业务字段冲突。
+- 本地案件管理：保存输入摘要、配置、逐分支结果和 HTML/JSON 报告。
+- 隐私优先：服务默认只监听 `127.0.0.1`，上传材料留在本机。
 
-| 已核验结果 | 本轮实测 |
-|---|---|
-| 100 套混合材料，70 来源真实 / 30 生成或编辑 | **98/100**，图片 48/50，视频 50/50 |
-| 来源真实误报 | **0/70**，假材料检出 28/30 |
-| HTTP 上传至完整结果落盘 | **最长 2.302 秒**，P95 2.167 秒，失败/超时 0 |
-| 主流格式与证据链 | 22/22 完成 |
-| 新人像来源池 | 209/210 正确，来源真实误报 0/90 |
-| 文档局部 AI 修改专项 | **39/84 正确，11/28 误报，22/56 AI 编辑检出，尚未达标** |
-| 代码和模型资源 | 156 项测试通过，9 个模型资源和必需上游文件校验通过 |
+检测结果是调查线索，不是材料真实性或欺诈行为的自动定论。低风险同样不能证明材料真实。
 
-首轮新来源登记早于预测；随后集成注册与启动预热修复使用同一批材料复测，未因测试结果重训权重或重选阈值。专项人像与混合100共享部分保留池，不能合并成多轮独立盲测。0/70 的误报区间上界约5.20%，不能推定真实业务总体误报率为0。详见[验证报告](docs/VALIDATION.md)。
+## 运行环境
 
-## 评委快速开始
+- Windows 10/11
+- Python 3.12（需带 `py` 启动器）
+- NVIDIA 显卡与可用的 CUDA 驱动
+- Git
+- 建议预留 25 GB 磁盘空间
+- 仅在重新编译前端时需要 Node.js 20+
 
-建议下载 [v1.8 研究预览附件](https://github.com/God-Leelee/Lee/releases/tag/v1.8.0-preview.1)中的 **03 源码、05 视觉编码器、06 取证模型与源码**，解压到同一个父目录，得到一个 `Lee` 目录。不要形成 `Lee/Lee` 嵌套。
+## 快速开始
 
-准备 **Windows、Python 3.12、兼容 NVIDIA 驱动和 GPU、约25GB可用磁盘**。参考机器为 RTX5060 Laptop8GB、RAM32GB、Python3.12.14、torch2.8.0+cu128。第二台机器、其他GPU、CPU回退尚待完整实机验证。
+### 1. 获取项目
 
 ```powershell
+git clone https://github.com/God-Leelee/Lee.git
 cd Lee
-powershell -NoProfile -ExecutionPolicy Bypass -File .\安装与初始化.ps1
 ```
 
-首次安装需要联网安装固定 Python 依赖。两个权重附件包含必需模型和TruFor运行源码；普通体验不需要重新编译前端。若仅 `git clone`，安装器会按固定来源下载模型与上游源码。不会下载119张医疗原件。
+### 2. 准备运行模型
 
-安装结束后双击 **启动澄鉴.cmd**，等待约三分钟加载和预热，终端出现 `Application startup complete` 后打开 **http://127.0.0.1:8765/**。启动时间单列，单份五秒成绩针对服务就绪后的串行检测。保持终端运行，Ctrl+C停止。
+从 [GitHub Releases](https://github.com/God-Leelee/Lee/releases) 下载：
 
-## 重新生成演示结果
+- `CLEARTRACE_Encoder_Weights.zip`
+- `CLEARTRACE_Forensics_Assets.zip`
 
-保持服务运行，在另一个 PowerShell 窗口执行：
+将两个压缩包解压到项目所在的父目录，允许它们合并到当前 `Lee` 目录。不要形成 `Lee/Lee` 嵌套。
+
+如果不手动下载压缩包，初始化脚本也会根据 `models/runtime_assets.json` 获取缺失资源并校验 SHA-256。
+
+### 3. 安装
+
+在 PowerShell 中运行：
 
 ```powershell
-.\.venv\Scripts\python.exe -X utf8 scripts/verify_assets.py
-.\.venv\Scripts\python.exe -X utf8 scripts/make_demo_samples.py
-.\.venv\Scripts\python.exe -X utf8 scripts/reproduce_demo.py --output runs/review-new-001
+Set-ExecutionPolicy -Scope Process Bypass
+.\安装与初始化.ps1
 ```
 
-脚本重新上传并真实执行模型，核对输入SHA、配置、必需分支、原图掩码、实际PTS及JSON/CSV/HTML报告，输出目录必须全新。自制程序图片与短视频只验证功能，不带AI真假真值，不用于证明识别精度；出现高风险也不代表它们有已确认的AI生成标签。对照输出见[预期结果](docs/EXPECTED_RESULTS.md)。
+初始化脚本会创建 `.venv`、安装固定依赖、检查 CUDA、校验模型资源并生成演示样例。
 
-## 复算100套研究测试
+### 4. 启动
 
-尊重各原发布源的研究使用条款，联网取得固定公开输入并重建已知编辑操作：
+双击 `启动澄鉴.cmd`，等待模型加载完成后打开：
+
+```text
+http://127.0.0.1:8765/
+```
+
+也可以直接运行：
 
 ```powershell
-.\.venv\Scripts\python.exe -X utf8 scripts/restore_public100.py
-.\.venv\Scripts\python.exe -X utf8 scripts/evaluate_live_15.py --suite mixed --version 1.8 --configuration-id v1.8-research-preview-003 --output review-public100-new-001
+.\.venv\Scripts\python.exe -X utf8 scripts\run_local.py
 ```
 
-106个原始父源来自记录的发布者，100份测试输入和9份正常操作对照逐个校验SHA。来源受限时脚本会明确失败，不能换图后沿用旧成绩。测试会实际执行推理，失败、拒判、超时计入分母。初次下载需要网络，包中不是一套全离线操作系统与Python环境镜像。
+## 验证安装
 
-## 技术与范围
+```powershell
+.\.venv\Scripts\python.exe -X utf8 scripts\verify_assets.py
+.\.venv\Scripts\python.exe -X utf8 scripts\make_demo_samples.py
+.\.venv\Scripts\python.exe -X utf8 scripts\reproduce_demo.py --base http://127.0.0.1:8765 --output runs/demo-new-001
+```
 
-CF224冻结表征与轻量MLP适配、CLIP/UFD、WaveRep、TruFor、SIFT与密集复制、连续窗口TCN、带框OCR及元数据共同构成主链路。图片生成和编辑分开建模，视频用条件证据树融合。源文件名、工具标签和真值掩码不传入模型。
+`verify_assets.py` 检查模型、上游源码版本与哈希；`reproduce_demo.py` 会真实上传两张图片和一段视频，并核对报告、坐标、时间戳与运行分支。
 
-支持JPEG、PNG、WebP、BMP、TIFF、AVIF、HEIC/HEIF，以及MP4、MOV、MKV、WebM、AVI。100MB、图片50MP、视频120秒/4K是接收上限，尚无全边界五秒保证。PDF、RAW、动态图像和音频转写未纳入。
+## 支持的输入
 
-风险支持人工核验，不等于保险欺诈概率。EXIF缺失不单独判假，视频未采样时间保持未知。运行数据位于本机 `data/cases/`。当前未部署公网。
+- 图片：JPEG、PNG、WebP、BMP、TIFF、HEIC、HEIF、AVIF
+- 视频：MP4、MOV、AVI、MKV、WebM
 
-## 材料与下一步
+单次请求限制和视频采样参数由 `config.json` 控制。无法安全解码、文件损坏或超过限制的输入会被拒绝并返回明确错误。
 
-- [完整复现说明](docs/REPRODUCING.md)
-- [技术架构与流程图](docs/ARCHITECTURE.md)
-- [验证、错误与局限](docs/VALIDATION.md)
-- [8分钟现场演示脚本](docs/DEMO_SCRIPT.md)
-- [数据和公开范围](docs/DISTRIBUTION.md)
-- [开源来源与原许可](THIRD_PARTY_NOTICES.md)
+## 项目结构
 
-下一步优先补强医疗文档局部修改、传统拼接漏检及新工具来源。当前119张资源原件仅本地保留。SPAI和CO-SPY尚未完成同集比较，未进入发布链路。所有已有测试此后作为回归，正式达标需要新来源盲测。
+```text
+backend/              FastAPI 服务、检测编排、报告与案件存储
+frontend/             React/Vite 源码及已构建静态资源
+models/               小型适配头与运行资源锁文件
+scripts/              安装、启动、资源校验和回归工具
+tests/                后端、接口、融合与格式测试
+docs/                 架构、使用、测试和隐私说明
+examples/             可公开分发的演示输入与参考输出
+config.json           模型开关、阈值与运行限制
+requirements.lock     Python 固定依赖
+```
+
+## 开发与测试
+
+```powershell
+.\.venv\Scripts\python.exe -m pytest -q
+```
+
+重新编译前端：
+
+```powershell
+cd frontend
+npm.cmd ci
+npm.cmd run build
+```
+
+更多信息见：
+
+- [系统架构](docs/ARCHITECTURE.md)
+- [使用说明](docs/USAGE.md)
+- [测试说明](docs/TESTING.md)
+- [数据与隐私](docs/PRIVACY.md)
+- [第三方组件与许可](THIRD_PARTY_NOTICES.md)
+
+## 许可证
+
+本仓库是可查看源码的研究与评估项目，使用范围以 [LICENSE](LICENSE) 为准。模型和第三方组件仍受各自许可证约束，详见 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)。

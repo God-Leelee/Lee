@@ -18,6 +18,6 @@ if __name__ == '__main__':
     os.environ['HF_HUB_OFFLINE'] = '1'
     os.environ['HF_HUB_DISABLE_TELEMETRY'] = '1'
     os.environ['TRANSFORMERS_OFFLINE'] = '1'
-    print(f'CLEARTRACE 1.8.0 research preview: loading models; then open http://127.0.0.1:{args.port}/', flush=True)
+    print(f'CLEARTRACE: loading models; then open http://127.0.0.1:{args.port}/', flush=True)
     import uvicorn
     uvicorn.run('backend.app:app', host='127.0.0.1', port=args.port)

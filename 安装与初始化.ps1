@@ -48,4 +48,4 @@ if ($RebuildFrontend -or -not (Test-Path -LiteralPath 'frontend/dist/index.html'
 }
 & $reviewPython -X utf8 scripts/make_demo_samples.py
 if ($LASTEXITCODE -ne 0) { throw 'Demo input generation failed.' }
-Write-Host 'CLEARTRACE 1.8 ready. Double-click the CMD launcher, wait for model startup, then open http://127.0.0.1:8765/'
+Write-Host 'CLEARTRACE is ready. Double-click the CMD launcher, wait for model startup, then open http://127.0.0.1:8765/'
